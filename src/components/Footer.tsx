@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Building, Instagram, Mail, Phone } from 'lucide-react';
+import PrivacyPolicyModal from './PrivacyPolicyModal';
 
 const Footer = () => {
+  const [isPrivacyPolicyOpen, setIsPrivacyPolicyOpen] = useState(false);
+
   return (
     <footer className="bg-gray-900 pt-16 pb-8 border-t border-gray-800">
       <div className="container mx-auto px-4 md:px-6">
@@ -39,12 +42,12 @@ const Footer = () => {
           </div>
           
           <div className="text-center md:text-right">
-            <a
-              href="/privacy-policy"
+            <button
+              onClick={() => setIsPrivacyPolicyOpen(true)}
               className="text-gray-400 hover:text-pink-500 transition-colors duration-300"
             >
               Privacy Policy
-            </a>
+            </button>
           </div>
         </div>
 
@@ -55,6 +58,11 @@ const Footer = () => {
           </p>
         </div>
       </div>
+
+      <PrivacyPolicyModal 
+        isOpen={isPrivacyPolicyOpen}
+        onClose={() => setIsPrivacyPolicyOpen(false)}
+      />
     </footer>
   );
 };
