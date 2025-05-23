@@ -1,104 +1,190 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { venuesData } from '../data/artistsData';
-import { CreditCard, Building } from 'lucide-react';
+import { CreditCard, Building, Users, Calendar, Clock } from 'lucide-react';
 
 const PaymentPage = () => {
   const [searchParams] = useSearchParams();
   const venueId = parseInt(searchParams.get('venue') || '1');
   const venue = venuesData.find(v => v.id === venueId);
+  
+  const [formData, setFormData] = useState({
+    bookingName: '',
+    persons: '1',
+    whatsapp: '',
+    email: '',
+    decoration: 'no',
+  });
 
   if (!venue) return <div>Venue not found</div>;
 
   const basePrice = parseInt(venue.price.replace(/[^\d]/g, ''));
-  const decorationFee = parseInt(venue.decorationFee.replace(/[^\d]/g, ''));
-  const advanceAmount = Math.round((basePrice + decorationFee) * 0.3);
-  const balanceAmount = basePrice + decorationFee - advanceAmount;
+  const decorationFee = formData.decoration === 'yes' ? parseInt(venue.decorationFee.replace(/[^\d]/g, '')) : 0;
+  const convenienceFee = 500;
+  const totalAmount = basePrice + decorationFee + convenienceFee;
+  const advanceAmount = Math.round(totalAmount * 0.3);
+  const balanceAmount = totalAmount - advanceAmount;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Handle payment processing here
+    console.log('Processing payment...', { formData, advanceAmount });
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 py-12">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-3 mb-8">
             <Building className="h-8 w-8 text-pink-500" />
             <h1 className="text-3xl font-bold text-white">Complete Your Booking</h1>
           </div>
 
-          <div className="bg-gray-800 rounded-xl p-6 mb-8">
-            <h2 className="text-xl font-bold text-white mb-4">Booking Summary</h2>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center py-2 border-b border-gray-700">
-                <span className="text-gray-300">Venue</span>
-                <span className="text-white font-medium">{venue.name}</span>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <div className="bg-gray-800 rounded-xl p-6 mb-8">
+                <h2 className="text-xl font-bold text-white mb-6">Overview</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="flex items-center gap-3">
+                    <Building className="h-5 w-5 text-pink-500" />
+                    <div>
+                      <p className="text-gray-400 text-sm">Venue</p>
+                      <p className="text-white font-medium">{venue.name}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Calendar className="h-5 w-5 text-pink-500" />
+                    <div>
+                      <p className="text-gray-400 text-sm">Date</p>
+                      <p className="text-white font-medium">Select in next step</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Clock className="h-5 w-5 text-pink-500" />
+                    <div>
+                      <p className="text-gray-400 text-sm">Time</p>
+                      <p className="text-white font-medium">Select in next step</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between items-center py-2 border-b border-gray-700">
-                <span className="text-gray-300">Base Price</span>
-                <span className="text-white font-medium">₹{basePrice}</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b border-gray-700">
-                <span className="text-gray-300">Decoration Fee</span>
-                <span className="text-white font-medium">₹{decorationFee}</span>
-              </div>
-              <div className="flex justify-between items-center py-2 border-b border-gray-700">
-                <span className="text-gray-300">Advance Amount (30%)</span>
-                <span className="text-white font-medium">₹{advanceAmount}</span>
-              </div>
-              <div className="flex justify-between items-center py-2">
-                <span className="text-gray-300">Balance Amount</span>
-                <span className="text-white font-medium">₹{balanceAmount}</span>
-              </div>
+
+              <form onSubmit={handleSubmit} className="bg-gray-800 rounded-xl p-6">
+                <h2 className="text-xl font-bold text-white mb-6">Booking Details</h2>
+                <div className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Booking Name*
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.bookingName}
+                      onChange={(e) => setFormData({...formData, bookingName: e.target.value})}
+                      className="w-full bg-gray-700 border border-gray-600 rounded-lg py-2 px-4 text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+                      placeholder="Enter booking name"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Number of Persons*
+                    </label>
+                    <select
+                      required
+                      value={formData.persons}
+                      onChange={(e) => setFormData({...formData, persons: e.target.value})}
+                      className="w-full bg-gray-700 border border-gray-600 rounded-lg py-2 px-4 text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    >
+                      {[...Array(venue.baseMembers)].map((_, i) => (
+                        <option key={i + 1} value={i + 1}>{i + 1} Person{i !== 0 ? 's' : ''}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      WhatsApp Number*
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      value={formData.whatsapp}
+                      onChange={(e) => setFormData({...formData, whatsapp: e.target.value})}
+                      className="w-full bg-gray-700 border border-gray-600 rounded-lg py-2 px-4 text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+                      placeholder="Enter WhatsApp number"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Email ID*
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      className="w-full bg-gray-700 border border-gray-600 rounded-lg py-2 px-4 text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+                      placeholder="Enter email address"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Do you want decoration?*
+                    </label>
+                    <select
+                      required
+                      value={formData.decoration}
+                      onChange={(e) => setFormData({...formData, decoration: e.target.value})}
+                      className="w-full bg-gray-700 border border-gray-600 rounded-lg py-2 px-4 text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    >
+                      <option value="no">No</option>
+                      <option value="yes">Yes</option>
+                    </select>
+                  </div>
+                </div>
+              </form>
             </div>
-          </div>
 
-          <div className="bg-gray-800 rounded-xl p-6">
-            <h2 className="text-xl font-bold text-white mb-6">Payment Method</h2>
-            <div className="space-y-4">
-              <label className="block">
-                <div className="flex items-center gap-3 p-4 rounded-lg border border-gray-700 cursor-pointer hover:border-pink-500 transition-colors">
-                  <input type="radio" name="payment" className="text-pink-500" defaultChecked />
-                  <CreditCard className="h-5 w-5 text-pink-500" />
-                  <span className="text-white">Credit / Debit Card</span>
-                </div>
-              </label>
-
-              <div className="space-y-4 mt-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Card Number
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg py-2 px-4 text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
-                    placeholder="1234 5678 9012 3456"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Expiry Date
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full bg-gray-700 border border-gray-600 rounded-lg py-2 px-4 text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
-                      placeholder="MM/YY"
-                    />
+            <div className="lg:col-span-1">
+              <div className="bg-gray-800 rounded-xl p-6 sticky top-6">
+                <h2 className="text-xl font-bold text-white mb-6">Booking Summary</h2>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center py-2 border-b border-gray-700">
+                    <span className="text-gray-300">Base Price</span>
+                    <span className="text-white font-medium">₹{basePrice}</span>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      CVV
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full bg-gray-700 border border-gray-600 rounded-lg py-2 px-4 text-white focus:outline-none focus:ring-2 focus:ring-pink-500"
-                      placeholder="123"
-                    />
+                  <div className="flex justify-between items-center py-2 border-b border-gray-700">
+                    <span className="text-gray-300">Decoration Fee</span>
+                    <span className="text-white font-medium">₹{decorationFee}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-700">
+                    <span className="text-gray-300">Convenience Fee</span>
+                    <span className="text-white font-medium">₹{convenienceFee}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-700">
+                    <span className="text-gray-300">Advance Amount</span>
+                    <span className="text-white font-medium">₹{advanceAmount}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-gray-300">Balance Amount</span>
+                    <span className="text-white font-medium">₹{balanceAmount}</span>
                   </div>
                 </div>
+
+                <button 
+                  type="submit"
+                  className="w-full bg-pink-600 hover:bg-pink-700 text-white py-3 rounded-lg transition-colors duration-300 font-bold mt-6"
+                >
+                  PROCEED
+                </button>
+
+                <p className="text-gray-400 text-sm text-center mt-4">
+                  Balance amount to be paid at venue
+                </p>
               </div>
-
-              <button className="w-full bg-pink-600 hover:bg-pink-700 text-white py-3 rounded-lg transition-colors duration-300 font-bold mt-6">
-                Pay ₹{advanceAmount}
-              </button>
             </div>
           </div>
         </div>
